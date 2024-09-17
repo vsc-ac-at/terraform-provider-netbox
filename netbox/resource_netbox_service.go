@@ -55,6 +55,14 @@ func resourceNetboxService() *schema.Resource {
 					Type: schema.TypeInt,
 				},
 			},
+			"ip_addresses": {
+				Type:         schema.TypeSet,
+				Optional:     true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
+			tagsKey: tagsSchema,
 			customFieldsKey: customFieldsSchema,
 		},
 		Importer: &schema.ResourceImporter{
@@ -92,9 +100,20 @@ func resourceNetboxServiceCreate(d *schema.ResourceData, m interface{}) error {
 	dataVirtualMachineID := int64(d.Get("virtual_machine_id").(int))
 	data.VirtualMachine = &dataVirtualMachineID
 
-	data.Tags = []*models.NestedTag{}
-	data.Ipaddresses = []int64{}
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
 
+	data.Ipaddresses = []int64{}
+	dataIpAddresses, dataIpAddressesOk := d.GetOk("ip_addresses")
+	if dataIpAddressesOk {
+		var gatheredAddresses []int64
+		if v := dataIpAddresses.(*schema.Set); v.Len() > 0 {
+			for _, v := range v.List() {
+				gatheredAddresses = append(gatheredAddresses, int64(v.(int)))
+			}
+			data.Ipaddresses = gatheredAddresses
+		}
+	}
+	
 	ct, ok := d.GetOk(customFieldsKey)
 	if ok {
 		data.CustomFields = ct
@@ -132,6 +151,8 @@ func resourceNetboxServiceRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("protocol", res.GetPayload().Protocol.Value)
 	d.Set("ports", res.GetPayload().Ports)
 	d.Set("virtual_machine_id", res.GetPayload().VirtualMachine.ID)
+	d.Set(tagsKey, getTagListFromNestedTagList(res.GetPayload().Tags))
+	d.Set("ip_addresses", res.GetPayload().Ipaddresses)	
 
 	cf := getCustomFields(res.GetPayload().CustomFields)
 	if cf != nil {
@@ -166,8 +187,19 @@ func resourceNetboxServiceUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	data.Tags = []*models.NestedTag{}
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
+
 	data.Ipaddresses = []int64{}
+	dataIpAddresses, dataIpAddressesOk := d.GetOk("ip_addresses")
+	if dataIpAddressesOk {
+		var gatheredAddresses []int64
+		if v := dataIpAddresses.(*schema.Set); v.Len() > 0 {
+			for _, v := range v.List() {
+				gatheredAddresses = append(gatheredAddresses, int64(v.(int)))
+			}
+			data.Ipaddresses = gatheredAddresses
+		}
+	}
 
 	dataVirtualMachineID := int64(d.Get("virtual_machine_id").(int))
 	data.VirtualMachine = &dataVirtualMachineID
