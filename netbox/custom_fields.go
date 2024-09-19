@@ -21,5 +21,10 @@ func getCustomFields(cf interface{}) map[string]interface{} {
 	if !ok || len(cfm) == 0 {
 		return nil
 	}
+	for k, v := range cfm {
+		if v == nil {
+			delete(cfm, k)
+		}
+	}
 	return cfm
 }
