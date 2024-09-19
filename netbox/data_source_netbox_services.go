@@ -13,7 +13,7 @@ import (
 func dataSourceNetboxServices() *schema.Resource {
 	return &schema.Resource{
 		Read:        dataSourceNetboxServicesListRead,
-		Description: `:meta:subcategory:Extras:`,
+		Description: `:meta:subcategory:IP Address Management (IPAM):From the [official documentation](https://docs.netbox.dev/en/stable/features/services/#services)`,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
