@@ -47,6 +47,7 @@ func resourceNetboxRegion() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			tagsKey: tagsSchema,
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -89,6 +90,8 @@ func resourceNetboxRegionCreate(d *schema.ResourceData, m interface{}) error {
 	}
 	d.SetId(strconv.FormatInt(res.GetPayload().ID, 10))
 
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
+
 	return resourceNetboxRegionRead(d, m)
 }
 
@@ -119,6 +122,7 @@ func resourceNetboxRegionRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("parent_region_id", nil)
 	}
 	d.Set("description", res.GetPayload().Description)
+	d.Set(tagsKey, getTagListFromNestedTagList(res.GetPayload().Tags))
 	return nil
 }
 
@@ -148,7 +152,7 @@ func resourceNetboxRegionUpdate(d *schema.ResourceData, m interface{}) error {
 		data.Parent = int64ToPtr(int64(parentRegionIDValue.(int)))
 	}
 
-	data.Tags = []*models.NestedTag{}
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
 
 	params := dcim.NewDcimRegionsPartialUpdateParams().WithID(id).WithData(&data)
 
