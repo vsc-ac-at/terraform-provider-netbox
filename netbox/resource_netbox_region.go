@@ -80,7 +80,7 @@ func resourceNetboxRegionCreate(d *schema.ResourceData, m interface{}) error {
 		data.Parent = int64ToPtr(int64(parentRegionIDValue.(int)))
 	}
 
-	data.Tags = []*models.NestedTag{}
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
 
 	params := dcim.NewDcimRegionsCreateParams().WithData(&data)
 
@@ -89,8 +89,6 @@ func resourceNetboxRegionCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 	d.SetId(strconv.FormatInt(res.GetPayload().ID, 10))
-
-	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
 
 	return resourceNetboxRegionRead(d, m)
 }

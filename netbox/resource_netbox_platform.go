@@ -36,6 +36,7 @@ func resourceNetboxPlatform() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			tagsKey: tagsSchema,
 		},
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -67,6 +68,8 @@ func resourceNetboxPlatformCreate(d *schema.ResourceData, m interface{}) error {
 	if ok {
 		data.Manufacturer = int64ToPtr(int64(manufacturerIDValue.(int)))
 	}
+
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
 
 	params := dcim.NewDcimPlatformsCreateParams().WithData(&data)
 
@@ -107,6 +110,7 @@ func resourceNetboxPlatformRead(d *schema.ResourceData, m interface{}) error {
 	if result.Manufacturer != nil {
 		d.Set("manufacturer_id", result.Manufacturer.ID)
 	}
+	d.Set(tagsKey, getTagListFromNestedTagList(res.GetPayload().Tags))
 	return nil
 }
 
@@ -135,6 +139,8 @@ func resourceNetboxPlatformUpdate(d *schema.ResourceData, m interface{}) error {
 	if ok {
 		data.Manufacturer = int64ToPtr(int64(manufacturerIDValue.(int)))
 	}
+
+	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
 
 	params := dcim.NewDcimPlatformsPartialUpdateParams().WithID(id).WithData(&data)
 
