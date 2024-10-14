@@ -32,8 +32,9 @@ func resourceNetboxService() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 100),
 			},
 			"virtual_machine_id": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ExactlyOneOf: []string{"virtual_machine_id", "device_id"},
 			},
 			"protocol": {
 				Type:             schema.TypeString,
@@ -62,7 +63,22 @@ func resourceNetboxService() *schema.Resource {
 					Type: schema.TypeInt,
 				},
 			},
-			tagsKey: tagsSchema,
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"tags": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"device_id": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ExactlyOneOf: []string{"virtual_machine_id", "device_id"},
+			},
 			customFieldsKey: customFieldsSchema,
 		},
 		Importer: &schema.ResourceImporter{
@@ -97,10 +113,23 @@ func resourceNetboxServiceCreate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	dataVirtualMachineID := int64(d.Get("virtual_machine_id").(int))
-	data.VirtualMachine = &dataVirtualMachineID
+	if v, ok := d.GetOk("device_id"); ok {
+		deviceID := int64(v.(int))
+		data.Device = &deviceID
+	}
 
-	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
+	if v, ok := d.GetOk("virtual_machine_id"); ok {
+		dataVirtualMachineID := int64(v.(int))
+		data.VirtualMachine = &dataVirtualMachineID
+	}
+
+	v := d.Get("tags")
+	tags, _ := getNestedTagListFromResourceDataSet(api, v)
+	data.Tags = tags
+
+	if v, ok := d.GetOk("description"); ok {
+		data.Description = v.(string)
+	}
 
 	data.Ipaddresses = []int64{}
 	dataIpAddresses, dataIpAddressesOk := d.GetOk("ip_addresses")
@@ -150,9 +179,29 @@ func resourceNetboxServiceRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", res.GetPayload().Name)
 	d.Set("protocol", res.GetPayload().Protocol.Value)
 	d.Set("ports", res.GetPayload().Ports)
-	d.Set("virtual_machine_id", res.GetPayload().VirtualMachine.ID)
-	d.Set(tagsKey, getTagListFromNestedTagList(res.GetPayload().Tags))
 	d.Set("ip_addresses", res.GetPayload().Ipaddresses)	
+	d.Set("description", res.GetPayload().Description)
+
+	if res.GetPayload().VirtualMachine != nil {
+		d.Set("virtual_machine_id", res.GetPayload().VirtualMachine.ID)
+	} else {
+		d.Set("virtual_machine_id", nil)
+	}
+
+	if res.GetPayload().Device != nil {
+		d.Set("device_id", res.GetPayload().Device.ID)
+	} else {
+		d.Set("device_id", nil)
+	}
+
+	if tags := res.GetPayload().Tags; tags != nil {
+		var tagList []interface{}
+		for _, tag := range tags {
+			tagName := tag.Name
+			tagList = append(tagList, *tagName)
+		}
+		d.Set("tags", tagList)
+	}
 
 	cf := getCustomFields(res.GetPayload().CustomFields)
 	if cf != nil {
@@ -187,8 +236,6 @@ func resourceNetboxServiceUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	data.Tags, _ = getNestedTagListFromResourceDataSet(api, d.Get(tagsKey))
-
 	data.Ipaddresses = []int64{}
 	dataIpAddresses, dataIpAddressesOk := d.GetOk("ip_addresses")
 	if dataIpAddressesOk {
@@ -201,8 +248,23 @@ func resourceNetboxServiceUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	dataVirtualMachineID := int64(d.Get("virtual_machine_id").(int))
-	data.VirtualMachine = &dataVirtualMachineID
+	v := d.Get("tags")
+	tags, _ := getNestedTagListFromResourceDataSet(api, v)
+	data.Tags = tags
+
+	if v, ok := d.GetOk("description"); ok {
+		data.Description = v.(string)
+	}
+
+	if v, ok := d.GetOk("device_id"); ok {
+		deviceID := int64(v.(int))
+		data.Device = &deviceID
+	}
+
+	if v, ok := d.GetOk("virtual_machine_id"); ok {
+		dataVirtualMachineID := int64(v.(int))
+		data.VirtualMachine = &dataVirtualMachineID
+	}
 
 	cf, ok := d.GetOk(customFieldsKey)
 	if ok {
