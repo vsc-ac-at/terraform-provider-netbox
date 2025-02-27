@@ -5,4 +5,9 @@ data "netbox_ip_range" "test" {
 
 resource "netbox_available_ip_address" "test" {
   ip_range_id = data.netbox_ip_range.test.id
+  count      = 5  # Request 5 IP addresses from the range
+}
+
+output "allocated_ips" {
+  value = netbox_available_ip_address.test.ip_addresses
 }
