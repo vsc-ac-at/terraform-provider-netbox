@@ -49,7 +49,7 @@ This resource will retrieve the next available IP addresses from a given prefix 
 					Type: schema.TypeString,
 				},
 			},
-			"count": {
+			"address_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
@@ -121,7 +121,7 @@ func resourceNetboxAvailableIPAddressRangeCreate(d *schema.ResourceData, m inter
 	prefixID := int64(d.Get("prefix_id").(int))
 	vrfID := int64(int64(d.Get("vrf_id").(int)))
 	rangeID := int64(d.Get("ip_range_id").(int))
-	count := d.Get("count").(int)
+	count := d.Get("address_count").(int)
 	
 	// Create multiple AvailableIP objects based on count
 	var availableIPs []*models.AvailableIP

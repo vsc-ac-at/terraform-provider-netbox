@@ -3,7 +3,6 @@ package netbox
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"testing"
 
 	"github.com/fbreckle/go-netbox/netbox/client"
@@ -24,21 +23,21 @@ resource "netbox_prefix" "test" {
   status = "active"
   is_pool = false
 }
-resource "netbox_available_ip_address_range" "test" {
+resource "netbox_available_ip_addresses" "test" {
   prefix_id = netbox_prefix.test.id
-  count = 3
+  address_count = 3
   status = "active"
   dns_name = "test.mydomain.local"
   role = "loopback"
 }`, testPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.0"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.1"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.2"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "count", "3"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "status", "active"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "dns_name", "test.mydomain.local"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "role", "loopback"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.0"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.1"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.2"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "address_count", "3"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "dns_name", "test.mydomain.local"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "role", "loopback"),
 				),
 			},
 		},
@@ -57,19 +56,19 @@ resource "netbox_ip_range" "test" {
   start_address = "%s"
   end_address = "%s"
 }
-resource "netbox_available_ip_address_range" "test_range" {
+resource "netbox_available_ip_addresses" "test_range" {
   ip_range_id = netbox_ip_range.test.id
-  count = 3
+  address_count = 3
   status = "active"
   dns_name = "test_range.mydomain.local"
 }`, startAddress, endAddress),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test_range", "ip_addresses.0"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test_range", "ip_addresses.1"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test_range", "ip_addresses.2"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test_range", "count", "3"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test_range", "status", "active"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test_range", "dns_name", "test_range.mydomain.local"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test_range", "ip_addresses.0"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test_range", "ip_addresses.1"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test_range", "ip_addresses.2"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test_range", "address_count", "3"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test_range", "status", "active"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test_range", "dns_name", "test_range.mydomain.local"),
 				),
 			},
 		},
@@ -91,17 +90,17 @@ resource "netbox_prefix" "test" {
 resource "netbox_vrf" "test" {
   name = "test_vrf_for_ip_range"
 }
-resource "netbox_available_ip_address_range" "test" {
+resource "netbox_available_ip_addresses" "test" {
   prefix_id = netbox_prefix.test.id
-  count = 2
+  address_count = 2
   status = "active"
   vrf_id = netbox_vrf.test.id
 }`, testPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.0"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.1"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "count", "2"),
-					resource.TestCheckResourceAttrPair("netbox_available_ip_address_range.test", "vrf_id", "netbox_vrf.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.0"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.1"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "address_count", "2"),
+					resource.TestCheckResourceAttrPair("netbox_available_ip_addresses.test", "vrf_id", "netbox_vrf.test", "id"),
 				),
 			},
 		},
@@ -123,17 +122,17 @@ resource "netbox_prefix" "test" {
 resource "netbox_tenant" "test" {
   name = "test_tenant_for_ip_range"
 }
-resource "netbox_available_ip_address_range" "test" {
+resource "netbox_available_ip_addresses" "test" {
   prefix_id = netbox_prefix.test.id
-  count = 2
+  address_count = 2
   status = "active"
   tenant_id = netbox_tenant.test.id
 }`, testPrefix),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.0"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.1"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "count", "2"),
-					resource.TestCheckResourceAttrPair("netbox_available_ip_address_range.test", "tenant_id", "netbox_tenant.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.0"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.1"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "address_count", "2"),
+					resource.TestCheckResourceAttrPair("netbox_available_ip_addresses.test", "tenant_id", "netbox_tenant.test", "id"),
 				),
 			},
 		},
@@ -154,18 +153,18 @@ resource "netbox_ip_range" "test_range" {
   start_address = "%s"
   end_address = "%s"
 }
-resource "netbox_available_ip_address_range" "test" {
+resource "netbox_available_ip_addresses" "test" {
   ip_range_id = netbox_ip_range.test_range.id
-  count = 2
+  address_count = 2
   status = "active"
   dns_name = "test_range.mydomain.local"
   device_interface_id = netbox_device_interface.test.id
 }`, startAddress, endAddress),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.0"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.1"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "status", "active"),
-					resource.TestCheckResourceAttrPair("netbox_available_ip_address_range.test", "device_interface_id", "netbox_device_interface.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.0"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.1"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "status", "active"),
+					resource.TestCheckResourceAttrPair("netbox_available_ip_addresses.test", "device_interface_id", "netbox_device_interface.test", "id"),
 				),
 			},
 		},
@@ -199,18 +198,18 @@ resource "netbox_interface" "test" {
   name = "test_vm_interface_for_ip_range"
   virtual_machine_id = netbox_virtual_machine.test.id
 }
-resource "netbox_available_ip_address_range" "test" {
+resource "netbox_available_ip_addresses" "test" {
   ip_range_id = netbox_ip_range.test_range.id
-  count = 2
+  address_count = 2
   status = "active"
   dns_name = "test_range.mydomain.local"
   virtual_machine_interface_id = netbox_interface.test.id
 }`, startAddress, endAddress),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.0"),
-					resource.TestCheckResourceAttrSet("netbox_available_ip_address_range.test", "ip_addresses.1"),
-					resource.TestCheckResourceAttr("netbox_available_ip_address_range.test", "status", "active"),
-					resource.TestCheckResourceAttrPair("netbox_available_ip_address_range.test", "virtual_machine_interface_id", "netbox_interface.test", "id"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.0"),
+					resource.TestCheckResourceAttrSet("netbox_available_ip_addresses.test", "ip_addresses.1"),
+					resource.TestCheckResourceAttr("netbox_available_ip_addresses.test", "status", "active"),
+					resource.TestCheckResourceAttrPair("netbox_available_ip_addresses.test", "virtual_machine_interface_id", "netbox_interface.test", "id"),
 				),
 			},
 		},
@@ -218,8 +217,8 @@ resource "netbox_available_ip_address_range" "test" {
 }
 
 func init() {
-	resource.AddTestSweepers("netbox_available_ip_address_range", &resource.Sweeper{
-		Name:         "netbox_available_ip_address_range",
+	resource.AddTestSweepers("netbox_available_ip_addresses", &resource.Sweeper{
+		Name:         "netbox_available_ip_addresses",
 		Dependencies: []string{},
 		F: func(region string) error {
 			m, err := sharedClientForRegion(region)
